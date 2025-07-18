@@ -33,9 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const data = await api.post("/authentication/login", { email, password });
 
-      console.log("Login API Response:", data); // Debug log
-      console.log("Login Data Sent:", { email, password }); // Debug log
-
       // Store the token first
       if (data.token) {
         localStorage.setItem("token", data.token);
@@ -85,9 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setLoading(true);
     try {
       const data = await api.post("/authentication/signup", userData);
-
-      console.log("Registration API Response:", data); // Debug log
-      console.log("Registration Data Sent:", userData); // Debug log
 
       // Handle different possible response structures
       let userDataFromResponse;

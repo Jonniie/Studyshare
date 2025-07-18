@@ -88,7 +88,6 @@ const Upload: React.FC = () => {
         university_name: formData.university_name.trim(),
         past_question: urls.length === 1 ? urls[0] : urls, // send as string if one file, array if multiple
       };
-      console.log(payload);
       await api.post("/create-pq", payload);
       setShowSuccess(true);
       // navigate("/explore"); // Navigation will be handled by popup button

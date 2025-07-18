@@ -1,6 +1,15 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { BookOpen, Users, Share2, Search, ArrowRight, Star, Sparkles, Zap, Shield } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  BookOpen,
+  Users,
+  Share2,
+  Search,
+  ArrowRight,
+  Star,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 
 const Landing: React.FC = () => {
   return (
@@ -20,7 +29,9 @@ const Landing: React.FC = () => {
               <div className="p-2 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-lg">
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-800">StudyShare</span>
+              <span className="text-xl font-bold text-gray-800">
+                StudyShare
+              </span>
             </div>
             <div className="flex items-center space-x-4">
               <Link
@@ -45,9 +56,11 @@ const Landing: React.FC = () => {
         <div className="text-center">
           <div className="inline-flex items-center space-x-2 bg-white/60 backdrop-blur-md border border-gray-200/50 rounded-full px-4 py-2 mb-8">
             <Sparkles className="h-4 w-4 text-blue-500" />
-            <span className="text-gray-700 text-sm font-medium">Trusted by 10,000+ students</span>
+            <span className="text-gray-700 text-sm font-medium">
+              Trusted by 10,000+ students
+            </span>
           </div>
-          
+
           <h1 className="text-6xl md:text-7xl font-bold text-gray-800 mb-6 leading-tight">
             Share & Access
             <span className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent block">
@@ -55,12 +68,13 @@ const Landing: React.FC = () => {
             </span>
             from Any University
           </h1>
-          
+
           <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Connect with students across Nigeria and beyond. Upload, discover, and download 
-            high-quality past questions organized by university, faculty, and department.
+            Connect with students across Nigeria and beyond. Upload, discover,
+            and download high-quality past questions organized by university,
+            faculty, and department.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
             <Link
               to="/register"
@@ -90,7 +104,8 @@ const Landing: React.FC = () => {
             Everything you need to excel academically
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            StudyShare provides a comprehensive platform for students to collaborate and share knowledge
+            StudyShare provides a comprehensive platform for students to
+            collaborate and share knowledge
           </p>
         </div>
 
@@ -101,9 +116,12 @@ const Landing: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-6">
                 <Share2 className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Organized Structure</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Organized Structure
+              </h3>
               <p className="text-gray-600">
-                Navigate through universities, faculties, departments, and years to find exactly what you need
+                Navigate through universities, faculties, departments, and years
+                to find exactly what you need
               </p>
             </div>
           </div>
@@ -114,9 +132,12 @@ const Landing: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full mb-6">
                 <Search className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Smart Discovery</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Smart Discovery
+              </h3>
               <p className="text-gray-600">
-                Find relevant past questions using our advanced search and filtering system
+                Find relevant past questions using our advanced search and
+                filtering system
               </p>
             </div>
           </div>
@@ -127,9 +148,12 @@ const Landing: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full mb-6">
                 <Users className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">Community Driven</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Community Driven
+              </h3>
               <p className="text-gray-600">
-                Join a growing community of students helping each other succeed academically
+                Join a growing community of students helping each other succeed
+                academically
               </p>
             </div>
           </div>
@@ -141,25 +165,37 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white/60 backdrop-blur-md border border-gray-200/50 rounded-3xl p-12">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-800 mb-4">Trusted by students nationwide</h2>
-              <p className="text-gray-600 text-lg">Join thousands of students already using StudyShare</p>
+              <h2 className="text-4xl font-bold text-gray-800 mb-4">
+                Trusted by students nationwide
+              </h2>
+              <p className="text-gray-600 text-lg">
+                Join thousands of students already using StudyShare
+              </p>
             </div>
-            
+
             <div className="grid md:grid-cols-4 gap-8 text-center">
               <div className="group">
-                <div className="text-5xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">10,000+</div>
+                <div className="text-5xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">
+                  10,000+
+                </div>
                 <div className="text-gray-600">Students</div>
               </div>
               <div className="group">
-                <div className="text-5xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">50+</div>
+                <div className="text-5xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">
+                  5+
+                </div>
                 <div className="text-gray-600">Universities</div>
               </div>
               <div className="group">
-                <div className="text-5xl font-bold bg-gradient-to-r from-purple-500 to-blue-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">25,000+</div>
+                <div className="text-5xl font-bold bg-gradient-to-r from-purple-500 to-blue-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">
+                  25,000+
+                </div>
                 <div className="text-gray-600">Past Questions</div>
               </div>
               <div className="group">
-                <div className="text-5xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">4.8</div>
+                <div className="text-5xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform">
+                  4.8
+                </div>
                 <div className="text-gray-600 flex items-center justify-center">
                   <Star className="h-4 w-4 text-yellow-500 mr-1" />
                   Rating
@@ -176,9 +212,12 @@ const Landing: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-100/50 to-indigo-100/50 rounded-3xl blur-xl"></div>
           <div className="relative bg-gradient-to-r from-blue-50/80 to-indigo-50/80 backdrop-blur-md border border-gray-200/50 rounded-3xl p-12 text-center">
             <Zap className="h-16 w-16 text-blue-500 mx-auto mb-6" />
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Ready to boost your academic success?</h2>
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">
+              Ready to boost your academic success?
+            </h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join StudyShare today and get access to thousands of past questions from top universities
+              Join StudyShare today and get access to thousands of past
+              questions from top universities
             </p>
             <Link
               to="/register"
@@ -201,7 +240,10 @@ const Landing: React.FC = () => {
             <span className="text-xl font-bold text-gray-800">StudyShare</span>
           </div>
           <div className="text-center text-gray-600">
-            <p>&copy; 2024 StudyShare. Empowering students across Nigeria and beyond.</p>
+            <p>
+              &copy; 2025 StudyShare. Empowering students across Nigeria and
+              beyond.
+            </p>
           </div>
         </div>
       </footer>

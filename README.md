@@ -1,92 +1,74 @@
 # StudyShare
 
-A React TypeScript application for sharing and accessing past questions from universities.
+StudyShare is a modern web platform for sharing, exploring, and accessing university past questions and study materials. It features a beautiful file-explorer UI, seamless document uploads, and personalized user profiles, making it easy for students to contribute and find academic resources.
 
 ## Features
 
-- User authentication (login/signup)
-- Browse past questions by university, faculty, department, and year
-- Upload past questions
-- User profiles with contribution tracking
+- 📁 **File Explorer UI**: Browse universities, faculties, departments, and past questions in a familiar, intuitive explorer interface.
+- ⬆️ **Upload Past Questions**: Upload documents (PDFs, images, etc.) directly to Cloudinary and share them with the community.
+- 👤 **User Profiles**: View your uploads, contributor stats, and university affiliation.
+- 🔍 **Search & Filter**: Quickly find universities, faculties, departments, or specific past questions.
+- 📱 **Responsive Design**: Fully mobile-friendly with a hamburger menu and adaptive layouts.
+- 🖼️ **University Logos**: Visual branding for each university in the explorer.
+- 🔒 **Authentication**: Secure login, registration, and protected routes.
 
-## Setup
+## Tech Stack
 
-1. Install dependencies:
+- **Frontend**: React, TypeScript, Tailwind CSS, Lucide Icons
+- **State Management**: React Context API
+- **Routing**: React Router
+- **API**: RESTful endpoints (see `.env` for base URL)
+- **File Uploads**: Cloudinary
+- **Build Tool**: Vite
 
-```bash
-npm install
-```
+## Getting Started
 
-2. Create a `.env` file in the root directory:
+### Prerequisites
 
-```env
-VITE_BASE_URL=http://localhost:8000
-```
+- Node.js (v16+ recommended)
+- npm or yarn
 
-3. Start the development server:
+### Installation
 
-```bash
-npm run dev
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Jonniie/studyshare.git
+   cd studyshare
+   ```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+3. **Configure environment variables:**
 
-## API Integration
+   - Copy `.env.example` to `.env` and fill in your API base URL and Cloudinary credentials.
 
-The application integrates with your backend API for authentication:
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+   The app will be available at [http://localhost:5173](http://localhost:5173).
 
-### Login
+### Test Login Details
 
-- **Endpoint**: `POST /auth/login`
-- **Payload**:
+- email - drillsjohnny00@gmail.com
+- password - J!jtech2096
 
-```json
-{
-  "email": "string",
-  "password": "string"
-}
-```
+## Usage
 
-### Signup
+- **Explore:** Browse universities and drill down to faculties, departments, and past questions.
+- **Upload:** Click the upload button to add new documents. Files are stored on Cloudinary and linked in the database.
+- **Profile:** View your uploads, stats, and contributor level.
+- **Mobile:** Use the hamburger menu for navigation and search on small screens.
 
-- **Endpoint**: `POST /auth/signup`
-- **Payload**:
+## License
 
-```json
-{
-  "full_name": "string",
-  "email": "string",
-  "phone_number": "string",
-  "university": "string",
-  "password": "string"
-}
-```
+This project is licensed under the MIT License.
 
-## Environment Variables
+---
 
-- `VITE_BASE_URL`: Your backend API base URL (default: http://localhost:8000)
-
-## Project Structure
-
-```
-src/
-├── components/          # Reusable UI components
-├── contexts/           # React contexts (AuthContext)
-├── pages/              # Page components
-├── types/              # TypeScript type definitions
-├── utils/              # Utility functions (API client)
-└── data/               # Mock data (for development)
-```
-
-## Authentication Flow
-
-1. User fills out login/signup form
-2. Form data is sent to your API endpoints
-3. On successful authentication, user data and token are stored in localStorage
-4. User is redirected to the explore page
-5. Token is automatically included in subsequent API requests
-
-## Error Handling
-
-- Form validation for required fields
-- Password confirmation matching
-- API error messages displayed to users
-- Loading states during API calls
+**StudyShare** — Empowering students to share and access academic resources easily.

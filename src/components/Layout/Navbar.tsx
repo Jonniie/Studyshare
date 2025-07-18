@@ -76,7 +76,11 @@ const Navbar: React.FC = () => {
             </Link>
 
             <button
-              onClick={logout}
+              onClick={() => {
+                if (window.confirm("Are you sure you want to logout?")) {
+                  logout();
+                }
+              }}
               className="flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-300"
             >
               <LogOut className="h-4 w-4" />
@@ -148,7 +152,9 @@ const Navbar: React.FC = () => {
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  logout();
+                  if (window.confirm("Are you sure you want to logout?")) {
+                    logout();
+                  }
                 }}
                 className="flex items-center space-x-2 text-lg text-gray-800 text-left"
               >
