@@ -1,335 +1,306 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ChevronRight,
   FolderOpen,
-  Plus,
-  Search,
   BookOpen,
   Users,
   FileText,
+  Plus,
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { mockUniversities } from "../data/mockData";
+import { api } from "../utils/api";
 
-interface BreadcrumbItem {
+interface PastQuestion {
+  university_name: string;
+  faculty_name: string;
+  department_name: string;
+  year: string;
+  course_code: string;
+  past_question: string;
+}
+
+interface FacultyMap {
+  [faculty: string]: {
+    [department: string]: PastQuestion[];
+  };
+}
+
+// Explorer item type for the grid
+interface ExplorerItem {
+  type: "university" | "faculty" | "department" | "file";
   name: string;
-  path: string;
+  count?: number;
+  year?: string;
+  url?: string;
 }
 
 const Explore: React.FC = () => {
   const [currentPath, setCurrentPath] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
+  const [universities, setUniversities] = useState<string[]>([]); // List of university names
+  const [universityCounts, setUniversityCounts] = useState<
+    Record<string, number>
+  >({});
+  const [facultyMap, setFacultyMap] = useState<FacultyMap | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showDoc, setShowDoc] = useState<string | null>(null);
+  const [docLoading, setDocLoading] = useState(false);
 
-  const getCurrentData = () => {
+  useEffect(() => {
     if (currentPath.length === 0) {
-      return mockUniversities.map((uni) => ({
-        id: uni.id,
-        name: uni.name,
-        type: "university" as const,
-        count: uni.faculties.reduce(
-          (acc, faculty) =>
-            acc +
-            faculty.departments.reduce(
-              (deptAcc, dept) =>
-                deptAcc +
-                dept.years.reduce(
-                  (yearAcc, year) =>
-                    yearAcc +
-                    year.courses.reduce(
-                      (courseAcc, course) =>
-                        courseAcc + course.pastQuestions.length,
-                      0
-                    ),
-                  0
-                ),
-              0
-            ),
+      setLoading(true);
+      const staticUniversities = [
+        "University of Lagos",
+        "University of Ibadan",
+        "Obafemi Awolowo University",
+        "University of Nigeria, Nsukka",
+        "Ahmadu Bello University",
+        "Federal University of Technology, Akure",
+        "Lagos State University",
+        "Covenant University",
+        "Babcock University",
+      ];
+      setUniversities(staticUniversities);
+      Promise.all(
+        staticUniversities.map(async (uni) => {
+          try {
+            const res = await api.get(`/get-pq/${uni}`);
+            return {
+              uni,
+              count: res.total,
+            };
+          } catch {
+            return { uni, count: 0 };
+          }
+        })
+      ).then((results) => {
+        const counts: Record<string, number> = {};
+        results.forEach(({ uni, count }) => {
+          counts[uni] = count;
+        });
+        setUniversityCounts(counts);
+        setLoading(false);
+      });
+    }
+  }, [currentPath]);
+
+  // Helper to get current explorer items based on currentPath
+  function getExplorerItems(): ExplorerItem[] {
+    if (currentPath.length === 0) {
+      // Universities
+      return universities.map((uni) => ({
+        type: "university",
+        name: uni,
+        count: universityCounts[uni] || 0,
+      }));
+    }
+    if (currentPath.length === 1 && facultyMap) {
+      // Faculties
+      return Object.keys(facultyMap).map((faculty) => ({
+        type: "faculty",
+        name: faculty,
+        count: Object.values(facultyMap[faculty]).reduce(
+          (acc, arr) => acc + arr.length,
           0
         ),
       }));
     }
-
-    if (currentPath.length === 1) {
-      const university = mockUniversities.find(
-        (uni) => uni.id === currentPath[0]
-      );
-      return (
-        university?.faculties.map((faculty) => ({
-          id: faculty.id,
-          name: faculty.name,
-          type: "faculty" as const,
-          count: faculty.departments.reduce(
-            (acc, dept) =>
-              acc +
-              dept.years.reduce(
-                (yearAcc, year) =>
-                  yearAcc +
-                  year.courses.reduce(
-                    (courseAcc, course) =>
-                      courseAcc + course.pastQuestions.length,
-                    0
-                  ),
-                0
-              ),
-            0
-          ),
-        })) || []
-      );
+    if (currentPath.length === 2 && facultyMap) {
+      // Departments
+      const faculty = currentPath[1];
+      return Object.keys(facultyMap[faculty] || {}).map((dept) => ({
+        type: "department",
+        name: dept,
+        count: facultyMap[faculty][dept].length,
+      }));
     }
-
-    if (currentPath.length === 2) {
-      const university = mockUniversities.find(
-        (uni) => uni.id === currentPath[0]
-      );
-      const faculty = university?.faculties.find(
-        (fac) => fac.id === currentPath[1]
-      );
-      return (
-        faculty?.departments.map((dept) => ({
-          id: dept.id,
-          name: dept.name,
-          type: "department" as const,
-          count: dept.years.reduce(
-            (acc, year) =>
-              acc +
-              year.courses.reduce(
-                (courseAcc, course) => courseAcc + course.pastQuestions.length,
-                0
-              ),
-            0
-          ),
-        })) || []
-      );
+    if (currentPath.length === 3 && facultyMap) {
+      // Past Questions
+      const faculty = currentPath[1];
+      const dept = currentPath[2];
+      return (facultyMap[faculty]?.[dept] || []).map((pq: PastQuestion) => ({
+        type: "file",
+        name: pq.course_code || "Untitled",
+        year: pq.year,
+        url: pq.past_question,
+      }));
     }
-
-    if (currentPath.length === 3) {
-      const university = mockUniversities.find(
-        (uni) => uni.id === currentPath[0]
-      );
-      const faculty = university?.faculties.find(
-        (fac) => fac.id === currentPath[1]
-      );
-      const department = faculty?.departments.find(
-        (dept) => dept.id === currentPath[2]
-      );
-      return (
-        department?.years.map((year) => ({
-          id: year.id,
-          name: `${year.year}`,
-          type: "year" as const,
-          count: year.courses.reduce(
-            (acc, course) => acc + course.pastQuestions.length,
-            0
-          ),
-        })) || []
-      );
-    }
-
-    if (currentPath.length === 4) {
-      const university = mockUniversities.find(
-        (uni) => uni.id === currentPath[0]
-      );
-      const faculty = university?.faculties.find(
-        (fac) => fac.id === currentPath[1]
-      );
-      const department = faculty?.departments.find(
-        (dept) => dept.id === currentPath[2]
-      );
-      const year = department?.years.find((y) => y.id === currentPath[3]);
-      return (
-        year?.courses.map((course) => ({
-          id: course.id,
-          name: `${course.courseCode} - ${course.title}`,
-          type: "course" as const,
-          count: course.pastQuestions.length,
-        })) || []
-      );
-    }
-
     return [];
-  };
+  }
 
-  const navigate = (id: string, name: string, type: string) => {
-    if (type === "course") {
-      // Navigate to course view with past questions
-      return;
+  // Handler for clicking an explorer item
+  const handleExplorerClick = async (item: ExplorerItem) => {
+    if (item.type === "university") {
+      setLoading(true);
+      setCurrentPath([item.name]);
+      try {
+        const res = await api.get(`/get-pq/${item.name}`);
+        const data = Array.isArray(res) ? res : res.data || [];
+        const faculties: FacultyMap = {};
+        data.forEach((pq: PastQuestion) => {
+          const faculty = pq.faculty_name || "Unknown Faculty";
+          const department = pq.department_name || "Unknown Department";
+          if (!faculties[faculty]) faculties[faculty] = {};
+          if (!faculties[faculty][department])
+            faculties[faculty][department] = [];
+          faculties[faculty][department].push(pq);
+        });
+        setFacultyMap(faculties);
+      } catch {
+        setFacultyMap({});
+      } finally {
+        setLoading(false);
+      }
+    } else if (item.type === "faculty") {
+      setCurrentPath([currentPath[0], item.name]);
+    } else if (item.type === "department") {
+      setCurrentPath([currentPath[0], currentPath[1], item.name]);
+    } else if (item.type === "file") {
+      setDocLoading(true);
+      setShowDoc(item.url || null);
     }
-
-    const newPath = [...currentPath, id];
-    const newBreadcrumbs = [...breadcrumbs, { name, path: newPath.join("/") }];
-
-    setCurrentPath(newPath);
-    setBreadcrumbs(newBreadcrumbs);
   };
 
-  const navigateToBreadcrumb = (index: number) => {
-    if (index === -1) {
+  // Handler for breadcrumbs
+  const handleBreadcrumbClick = (idx: number) => {
+    if (idx === -1) {
       setCurrentPath([]);
-      setBreadcrumbs([]);
-    } else {
-      const newPath = currentPath.slice(0, index + 1);
-      const newBreadcrumbs = breadcrumbs.slice(0, index + 1);
-      setCurrentPath(newPath);
-      setBreadcrumbs(newBreadcrumbs);
+    } else if (idx === 0) {
+      setCurrentPath([currentPath[0]]);
+    } else if (idx === 1) {
+      setCurrentPath([currentPath[0], currentPath[1]]);
     }
   };
 
-  const currentData = getCurrentData();
-  const filteredData = currentData.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "university":
-        return <BookOpen className="h-6 w-6 text-purple-400" />;
-      case "faculty":
-        return <Users className="h-6 w-6 text-cyan-400" />;
-      case "department":
-        return <FolderOpen className="h-6 w-6 text-pink-400" />;
-      case "year":
-        return <FileText className="h-6 w-6 text-green-400" />;
-      case "course":
-        return <BookOpen className="h-6 w-6 text-yellow-400" />;
-      default:
-        return <FolderOpen className="h-6 w-6 text-gray-400" />;
-    }
-  };
-
-  const getCurrentTitle = () => {
-    if (currentPath.length === 0) return "Universities";
-    if (currentPath.length === 1) return "Faculties";
-    if (currentPath.length === 2) return "Departments";
-    if (currentPath.length === 3) return "Years";
-    if (currentPath.length === 4) return "Courses";
-    return "Explore";
+  // Add a mapping for university logos
+  const universityLogos: Record<string, string> = {
+    "Obafemi Awolowo University": "/oau.svg",
+    "University of Lagos": "/unilag.png",
+    "Covenant University": "/covenant.png",
+    // Add more as needed
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              {getCurrentTitle()}
-            </h1>
-            <p className="text-gray-600">
-              Navigate through the academic structure to find past questions
-            </p>
+      {/* Loading Screen */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-b-4 border-indigo-500 mb-6"></div>
+            <div className="text-xl font-semibold text-gray-700">
+              Loading...
+            </div>
           </div>
-          <Link
-            to="/upload"
-            className="mt-4 sm:mt-0 inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl"
-          >
-            <Plus className="h-5 w-5" />
-            <span>Upload Past Question</span>
-          </Link>
         </div>
-
-        {/* Breadcrumbs */}
-        {breadcrumbs.length > 0 && (
-          <nav className="flex items-center space-x-2 mb-6">
+      )}
+      {/* Breadcrumbs */}
+      <nav className="flex items-center space-x-2 mb-6">
+        <button
+          onClick={() => handleBreadcrumbClick(-1)}
+          className="text-blue-600 hover:text-blue-700 transition-colors"
+        >
+          Universities
+        </button>
+        {currentPath.map((crumb, idx) => (
+          <React.Fragment key={idx}>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
             <button
-              onClick={() => navigateToBreadcrumb(-1)}
+              onClick={() => handleBreadcrumbClick(idx)}
               className="text-blue-600 hover:text-blue-700 transition-colors"
             >
-              Home
+              {crumb}
             </button>
-            {breadcrumbs.map((crumb, index) => (
-              <React.Fragment key={index}>
-                <ChevronRight className="h-4 w-4 text-white/50" />
-                <button
-                  onClick={() => navigateToBreadcrumb(index)}
-                  className="text-blue-600 hover:text-blue-700 transition-colors"
-                >
-                  {crumb.name}
-                </button>
-              </React.Fragment>
-            ))}
-          </nav>
-        )}
-
-        {/* Search */}
-        <div className="bg-white/70 backdrop-blur-md border border-gray-200/50 rounded-2xl p-6">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder={`Search ${getCurrentTitle().toLowerCase()}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/50 backdrop-blur-md border border-gray-200/50 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            />
+          </React.Fragment>
+        ))}
+      </nav>
+      {/* Explorer Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {getExplorerItems().length === 0 ? (
+          <div className="flex flex-col items-center justify-center bg-white/70 backdrop-blur-md border border-gray-200/50 rounded-2xl p-8 h-full min-h-[200px] col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4">
+            <Plus className="h-10 w-10 text-blue-500 mb-4" />
+            <div className="text-lg font-semibold text-gray-800 mb-2">
+              No entries found
+            </div>
+            <div className="text-gray-600 mb-4 text-center">
+              Be the first to upload a document for this section.
+            </div>
+            <a
+              href="/upload"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
+            >
+              <Plus className="h-5 w-5" />
+              <span>Upload Document</span>
+            </a>
           </div>
-        </div>
-      </div>
-
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredData.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => navigate(item.id, item.name, item.type)}
-            className="group relative cursor-pointer"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-100/50 to-indigo-100/50 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"></div>
-            <div className="relative bg-white/70 backdrop-blur-md border border-gray-200/50 rounded-2xl p-6 hover:bg-white/80 transition-all duration-300 group-hover:scale-105">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  {getIcon(item.type)}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-700 transition-colors">
-                      {item.name}
-                    </h3>
-                    <p className="text-gray-500 text-sm capitalize">
-                      {item.type}
-                    </p>
-                  </div>
+        ) : (
+          getExplorerItems().map((item, idx) => (
+            <div
+              key={item.name + idx}
+              onClick={() => handleExplorerClick(item)}
+              className="group relative cursor-pointer"
+            >
+              <div className="relative bg-white/70 backdrop-blur-md border border-gray-200/50 rounded-2xl p-6 hover:bg-white/80 transition-all duration-300 group-hover:scale-105 flex flex-col items-center justify-center h-[400px]">
+                <div className="mb-4">
+                  {item.type === "university" &&
+                    (universityLogos[item.name] ? (
+                      <img
+                        src={universityLogos[item.name]}
+                        alt={item.name + " logo"}
+                        className="h-25 w-25 object-contain"
+                      />
+                    ) : (
+                      <BookOpen className="h-10 w-10 text-purple-400" />
+                    ))}
+                  {item.type === "faculty" && (
+                    <Users className="h-10 w-10 text-cyan-400" />
+                  )}
+                  {item.type === "department" && (
+                    <FolderOpen className="h-10 w-10 text-pink-400" />
+                  )}
+                  {item.type === "file" && (
+                    <FileText className="h-10 w-10 text-green-400" />
+                  )}
                 </div>
-                <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all duration-300" />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600 text-sm">
-                    {item.count}{" "}
-                    {item.count === 1 ? "past question" : "past questions"}
-                  </span>
+                <div className="text-lg font-semibold text-gray-800 text-center mb-2">
+                  {item.name}
                 </div>
-
-                {item.type === "course" && (
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border border-blue-200">
-                    View Questions
+                {item.type !== "file" && (
+                  <div className="text-gray-600 text-sm">
+                    {item.count} {item.count === 1 ? "Document" : "Documents"}
                   </div>
+                )}
+                {item.type === "file" && (
+                  <div className="text-gray-500 text-xs">Year: {item.year}</div>
                 )}
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
-
-      {filteredData.length === 0 && (
-        <div className="text-center py-12">
-          <div className="bg-white/60 backdrop-blur-md border border-gray-200/50 rounded-2xl p-12">
-            <FolderOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-800 mb-2">
-              No {getCurrentTitle().toLowerCase()} found
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {searchTerm
-                ? `No results found for "${searchTerm}"`
-                : `No ${getCurrentTitle().toLowerCase()} available in this section`}
-            </p>
-            <Link
-              to="/upload"
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
+      {/* Document Modal */}
+      {showDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full flex flex-col items-center relative">
+            <button
+              className="absolute top-1  right-2 text-gray-500 hover:text-red-500 text-4xl font-bold"
+              onClick={() => setShowDoc(null)}
+              aria-label="Close"
             >
-              <Plus className="h-4 w-4" />
-              <span>Be the first to upload</span>
-            </Link>
+              &times;
+            </button>
+            {docLoading && (
+              <div className="flex flex-col items-center justify-center w-full h-[70vh] absolute top-0 left-0 z-10 bg-white/80">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-b-4 border-indigo-500 mb-4"></div>
+                <div className="text-lg text-gray-700">Loading document...</div>
+              </div>
+            )}
+            <iframe
+              src={showDoc}
+              title="Document Viewer"
+              className="w-full h-[70vh] rounded-xl border"
+              frameBorder={0}
+              allowFullScreen
+              onLoad={() => setDocLoading(false)}
+              style={docLoading ? { visibility: "hidden" } : {}}
+            ></iframe>
           </div>
         </div>
       )}

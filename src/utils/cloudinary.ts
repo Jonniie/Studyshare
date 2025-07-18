@@ -3,7 +3,8 @@ import axios from "axios";
 export const uploadToCloudinary = async (
   file: File,
   uploadPreset: string,
-  cloudName: string
+  cloudName: string,
+  fileName?: string
 ) => {
   // Use 'raw' for non-images, 'image' for images
   const isImage = file.type.startsWith("image/");
@@ -12,10 +13,11 @@ export const uploadToCloudinary = async (
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", uploadPreset);
-
+  if (fileName) {
+    formData.append("public_id", fileName);
+  }
   const response = await axios.post(url, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-
   return response.data; // Contains .secure_url, .public_id, etc.
 };

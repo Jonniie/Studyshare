@@ -8,20 +8,22 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { uploadToCloudinary } from "../utils/cloudinary";
+import { api } from "../utils/api";
 
 const Upload: React.FC = () => {
   const [formData, setFormData] = useState({
-    universityName: "",
-    facultyName: "",
-    departmentName: "",
+    university_name: "",
+    faculty_name: "",
+    department_name: "",
     year: "",
-    courseCode: "",
-    title: "",
+    course_code: "",
   });
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+  const [title, setTitle] = useState("");
   const navigate = useNavigate();
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -51,7 +53,6 @@ const Upload: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setUploadedUrls([]);
 
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
@@ -64,16 +65,37 @@ const Upload: React.FC = () => {
     try {
       const urls: string[] = [];
       for (const file of files) {
-        const result = await uploadToCloudinary(file, uploadPreset, cloudName);
+        const sanitizedTitle =
+          title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "")
+            .substring(0, 100) || "uploaded_file";
+        const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
+        const ext = extMatch ? `.${extMatch[1].toLowerCase()}` : "";
+        const fileName = sanitizedTitle + ext;
+        const result = await uploadToCloudinary(
+          file,
+          uploadPreset,
+          cloudName,
+          fileName
+        );
         urls.push(result.secure_url);
       }
-      setUploadedUrls(urls);
-      // You can now send these URLs to your backend with the rest of the form data
-      alert("Files uploaded to Cloudinary!");
-      // Example: console.log('Cloudinary URLs:', urls);
-      // navigate('/explore');
+      // Send to backend
+      const payload = {
+        ...formData,
+        university_name: formData.university_name.trim(),
+        past_question: urls.length === 1 ? urls[0] : urls, // send as string if one file, array if multiple
+      };
+      console.log(payload);
+      await api.post("/create-pq", payload);
+      setShowSuccess(true);
+      // navigate("/explore"); // Navigation will be handled by popup button
     } catch (err) {
-      alert("Cloudinary upload failed!");
+      setShowError(
+        "Upload failed! " + (err instanceof Error ? err.message : "")
+      );
       console.error(err);
     } finally {
       setLoading(false);
@@ -104,57 +126,57 @@ const Upload: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label
-                htmlFor="universityName"
+                htmlFor="university_name"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 University Name
               </label>
               <input
                 type="text"
-                id="universityName"
-                name="universityName"
+                id="university_name"
+                name="university_name"
                 required
-                value={formData.universityName}
+                value={formData.university_name}
                 onChange={handleInputChange}
-                placeholder="e.g., University of Lagos"
+                placeholder="  University of Lagos"
                 className="w-full px-4 py-3 bg-white/50 backdrop-blur-md border border-gray-200/50 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
               />
             </div>
 
             <div>
               <label
-                htmlFor="facultyName"
+                htmlFor="faculty_name"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Faculty Name
               </label>
               <input
                 type="text"
-                id="facultyName"
-                name="facultyName"
+                id="faculty_name"
+                name="faculty_name"
                 required
-                value={formData.facultyName}
+                value={formData.faculty_name}
                 onChange={handleInputChange}
-                placeholder="e.g., Faculty of Science"
+                placeholder="  Faculty of Science"
                 className="w-full px-4 py-3 bg-white/50 backdrop-blur-md border border-gray-200/50 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
               />
             </div>
 
             <div>
               <label
-                htmlFor="departmentName"
+                htmlFor="department_name"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Department Name
               </label>
               <input
                 type="text"
-                id="departmentName"
-                name="departmentName"
+                id="department_name"
+                name="department_name"
                 required
-                value={formData.departmentName}
+                value={formData.department_name}
                 onChange={handleInputChange}
-                placeholder="e.g., Computer Science"
+                placeholder="  Computer Science"
                 className="w-full px-4 py-3 bg-white/50 backdrop-blur-md border border-gray-200/50 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
               />
             </div>
@@ -191,19 +213,19 @@ const Upload: React.FC = () => {
 
             <div className="md:col-span-2">
               <label
-                htmlFor="courseCode"
+                htmlFor="course_code"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Course Code
               </label>
               <input
                 type="text"
-                id="courseCode"
-                name="courseCode"
+                id="course_code"
+                name="course_code"
                 required
-                value={formData.courseCode}
+                value={formData.course_code}
                 onChange={handleInputChange}
-                placeholder="e.g., CSC 301"
+                placeholder="  CSC 301"
                 className="w-full px-4 py-3 bg-white/50 backdrop-blur-md border border-gray-200/50 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
               />
             </div>
@@ -231,9 +253,9 @@ const Upload: React.FC = () => {
               id="title"
               name="title"
               required
-              value={formData.title}
-              onChange={handleInputChange}
-              placeholder="e.g., Data Structures and Algorithms Past Question 2023"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="  Data Structures and Algorithms Past Question 2023"
               className="w-full px-4 py-3 bg-white/50 backdrop-blur-md border border-gray-200/50 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
             />
           </div>
@@ -306,21 +328,69 @@ const Upload: React.FC = () => {
           </div>
         </div>
 
-        {/* Uploaded URLs Preview */}
-        {uploadedUrls.length > 0 && (
-          <div className="bg-white/70 backdrop-blur-md border border-green-200/50 rounded-2xl p-8 mt-4">
-            <h3 className="text-lg font-semibold text-green-700 mb-4">
-              Uploaded to Cloudinary:
-            </h3>
-            <ul className="space-y-2">
-              {uploadedUrls.map((url, idx) => (
-                <li key={idx} className="break-all text-blue-700 underline">
-                  <a href={url} target="_blank" rel="noopener noreferrer">
-                    {url}
-                  </a>
-                </li>
-              ))}
-            </ul>
+        {/* Popup Modal for Success */}
+        {showSuccess && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
+              <div className="mb-4">
+                <svg
+                  className="mx-auto h-12 w-12 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Upload Successful!</h2>
+              <p className="text-gray-700 mb-6">
+                Your past question has been uploaded successfully.
+              </p>
+              <button
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
+                onClick={() => {
+                  setShowSuccess(false);
+                  navigate("/explore");
+                }}
+              >
+                Go to Explore
+              </button>
+            </div>
+          </div>
+        )}
+        {/* Popup Modal for Error */}
+        {showError && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
+              <div className="mb-4">
+                <svg
+                  className="mx-auto h-12 w-12 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Upload Failed</h2>
+              <p className="text-gray-700 mb-6">{showError}</p>
+              <button
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
+                onClick={() => setShowError(null)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         )}
 

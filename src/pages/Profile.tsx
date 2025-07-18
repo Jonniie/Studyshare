@@ -12,33 +12,36 @@ import { useAuth } from "../contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { api } from "../utils/api";
 
-interface UserQuestion {
+interface UserUpload {
   id: string;
   title: string;
   type: string;
   votes: number;
   createdAt: Date;
 }
+interface ProfileData {
+  profilePic?: string;
+  fullName?: string;
+  createdAt?: string | Date;
+  data: Array<{
+    full_name: string;
+    university: string;
+    uploads: UserUpload[];
+  }>;
+}
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [userQuestions, setUserQuestions] = useState<UserQuestion[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user?.email) return;
       setLoading(true);
-      setError(null);
       try {
         const data = await api.get(`/get-user-profile/${user.email}`);
         setProfile(data);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch profile."
-        );
       } finally {
         setLoading(false);
       }
@@ -46,37 +49,12 @@ const Profile: React.FC = () => {
     fetchProfile();
   }, [user?.email]);
 
-  useEffect(() => {
-    // Simulate loading user's uploads
-    setTimeout(() => {
-      // Sample data to show how it would look with actual uploads
-      // Remove this when you have the real API endpoint
-      const sampleQuestions: UserQuestion[] = [
-        {
-          id: "1",
-          title: "Data Structures and Algorithms Past Question 2023",
-          type: "PDF",
-          votes: 15,
-          createdAt: new Date("2024-01-15"),
-        },
-        {
-          id: "2",
-          title: "Computer Networks Final Exam 2022",
-          type: "PDF",
-          votes: 8,
-          createdAt: new Date("2024-01-10"),
-        },
-      ];
-
-      setUserQuestions(sampleQuestions); // Replace with [] when you want to show empty state
-      setLoading(false);
-    }, 1000);
-  }, []);
+  // Remove the useEffect that sets dummy userQuestions
 
   if (!user) return null;
 
-  const totalVotes = userQuestions.reduce(
-    (sum: number, question: UserQuestion) => sum + question.votes,
+  const totalVotes = profile?.data[0]?.uploads?.reduce(
+    (sum: number, question: UserUpload) => sum + question.votes,
     0
   );
 
@@ -106,7 +84,7 @@ const Profile: React.FC = () => {
     };
   };
 
-  const contributorInfo = getContributorLevel(totalVotes);
+  const contributorInfo = getContributorLevel(totalVotes || 0);
   const ContributorIcon = contributorInfo.icon;
 
   if (loading) {
@@ -130,9 +108,9 @@ const Profile: React.FC = () => {
           <div className="flex-shrink-0 mb-6 sm:mb-0">
             <div className="relative">
               <div className="w-32 h-32 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                {profile.profilePic ? (
+                {profile?.profilePic ? (
                   <img
-                    src={profile.dataprofilePic}
+                    src={profile.profilePic}
                     alt={profile.fullName}
                     className="w-32 h-32 rounded-full object-cover"
                   />
@@ -150,10 +128,10 @@ const Profile: React.FC = () => {
 
           <div className="flex-1">
             <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              {profile.data[0].full_name}
+              {profile?.data[0]?.full_name}
             </h1>
             <p className="text-gray-600 text-xl mb-4">
-              {profile.data[0].university}
+              {profile?.data[0]?.university}
             </p>
             <div className="flex items-center space-x-6 text-gray-600">
               <div className="flex items-center space-x-2">
@@ -163,7 +141,11 @@ const Profile: React.FC = () => {
                   {new Intl.DateTimeFormat("en-US", {
                     month: "long",
                     year: "numeric",
-                  }).format(profile.createdAt)}
+                  }).format(
+                    profile?.createdAt
+                      ? new Date(profile.createdAt)
+                      : new Date()
+                  )}
                 </span>
               </div>
               <div
@@ -188,7 +170,7 @@ const Profile: React.FC = () => {
               <BookOpen className="h-8 w-8 text-white" />
             </div>
             <div className="text-3xl font-bold text-gray-800 mb-2">
-              {userQuestions.length}
+              {profile?.data[0]?.uploads?.length || 0}
             </div>
             <div className="text-gray-600">Past Questions Uploaded</div>
           </div>
@@ -201,7 +183,7 @@ const Profile: React.FC = () => {
               <ThumbsUp className="h-8 w-8 text-white" />
             </div>
             <div className="text-3xl font-bold text-gray-800 mb-2">
-              {totalVotes}
+              {totalVotes || 0}
             </div>
             <div className="text-gray-600">Total Votes Received</div>
           </div>
@@ -227,9 +209,9 @@ const Profile: React.FC = () => {
       <div className="bg-white/70 backdrop-blur-md border border-gray-200/50 rounded-2xl p-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Uploads</h2>
 
-        {userQuestions.length > 0 ? (
+        {profile?.data[0]?.uploads && profile.data[0].uploads.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {userQuestions.map((question) => (
+            {profile.data[0].uploads?.map((question: UserUpload) => (
               <div key={question.id} className="group relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-100/30 to-indigo-100/30 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
                 <div className="relative bg-white/50 backdrop-blur-md border border-gray-200/30 rounded-xl p-6 hover:bg-white/70 transition-all duration-300">
