@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   User,
   Calendar,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { api } from "../utils/api";
 
 interface UserQuestion {
   id: string;
@@ -21,30 +22,30 @@ interface UserQuestion {
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
-  const [userQuestions, setUserQuestions] = useState<UserQuestion[]>([]);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userQuestions, setUserQuestions] = useState<UserQuestion[]>([]);
 
-  // TODO: Replace with actual API call when endpoint is available
-  // Example API integration:
-  // useEffect(() => {
-  //   const fetchUserUploads = async () => {
-  //     try {
-  //       const response = await api.get('/user/uploads');
-  //       setUserQuestions(response.data || []);
-  //     } catch (error) {
-  //       console.error('Error fetching user uploads:', error);
-  //       setUserQuestions([]);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //
-  //   if (user) {
-  //     fetchUserUploads();
-  //   }
-  // }, [user]);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.email) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await api.get(`/get-user-profile/${user.email}`);
+        setProfile(data);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch profile."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [user?.email]);
 
-  // For now, we'll use placeholder data since we don't have the API endpoint yet
   useEffect(() => {
     // Simulate loading user's uploads
     setTimeout(() => {
@@ -129,10 +130,10 @@ const Profile: React.FC = () => {
           <div className="flex-shrink-0 mb-6 sm:mb-0">
             <div className="relative">
               <div className="w-32 h-32 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                {user.profilePic ? (
+                {profile.profilePic ? (
                   <img
-                    src={user.profilePic}
-                    alt={user.fullName}
+                    src={profile.dataprofilePic}
+                    alt={profile.fullName}
                     className="w-32 h-32 rounded-full object-cover"
                   />
                 ) : (
@@ -149,9 +150,11 @@ const Profile: React.FC = () => {
 
           <div className="flex-1">
             <h1 className="text-4xl font-bold text-gray-800 mb-2">
-              {user.fullName}
+              {profile.data[0].full_name}
             </h1>
-            <p className="text-gray-600 text-xl mb-4">{user.university}</p>
+            <p className="text-gray-600 text-xl mb-4">
+              {profile.data[0].university}
+            </p>
             <div className="flex items-center space-x-6 text-gray-600">
               <div className="flex items-center space-x-2">
                 <Calendar className="h-5 w-5" />
@@ -160,7 +163,7 @@ const Profile: React.FC = () => {
                   {new Intl.DateTimeFormat("en-US", {
                     month: "long",
                     year: "numeric",
-                  }).format(user.createdAt)}
+                  }).format(profile.createdAt)}
                 </span>
               </div>
               <div

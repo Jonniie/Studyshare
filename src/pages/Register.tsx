@@ -68,7 +68,29 @@ const Register: React.FC = () => {
       navigate("/explore");
     } catch (error) {
       console.error("Registration failed:", error);
-      setError("Registration failed. Please try again.");
+      if (
+        error &&
+        typeof error === "object" &&
+        "errors" in error &&
+        Array.isArray(error.errors)
+      ) {
+        const fieldErrors = error.errors as Array<{
+          field: string;
+          message: string;
+        }>;
+        if (fieldErrors.length > 0) {
+          const firstError = fieldErrors[0];
+          setError(`Registeration failed - ${firstError.message}`);
+        } else {
+          setError(
+            "Registration failed - Invalid input or missing required fields"
+          );
+        }
+      } else if (error instanceof Error) {
+        setError(`Registration failed - ${error.message}`);
+      } else {
+        setError("Registration failed - An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }

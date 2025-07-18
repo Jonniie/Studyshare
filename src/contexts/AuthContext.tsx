@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const data = await api.post("/auth/login", { email, password });
+      const data = await api.post("/authentication/login", { email, password });
 
       console.log("Login API Response:", data); // Debug log
       console.log("Login Data Sent:", { email, password }); // Debug log
@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const register = async (userData: RegisterData) => {
     setLoading(true);
     try {
-      const data = await api.post("/auth/signup", userData);
+      const data = await api.post("/authentication/signup", userData);
 
       console.log("Registration API Response:", data); // Debug log
       console.log("Registration Data Sent:", userData); // Debug log
