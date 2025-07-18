@@ -237,14 +237,14 @@ const Explore: React.FC = () => {
               onClick={() => handleExplorerClick(item)}
               className="group relative cursor-pointer"
             >
-              <div className="relative bg-white/70 backdrop-blur-md border border-gray-200/50 rounded-2xl p-6 hover:bg-white/80 transition-all duration-300 group-hover:scale-105 flex flex-col items-center justify-center h-[400px]">
+              <div className="relative bg-white/70 backdrop-blur-md border border-gray-200/50 rounded-2xl p-6 hover:bg-white/80 transition-all duration-300 group-hover:scale-105 flex flex-col items-center justify-center min-h-[300px]">
                 <div className="mb-4">
                   {item.type === "university" &&
                     (universityLogos[item.name] ? (
                       <img
                         src={universityLogos[item.name]}
                         alt={item.name + " logo"}
-                        className="h-25 w-25 object-contain"
+                        className="w-20 h-20 object-contain"
                       />
                     ) : (
                       <BookOpen className="h-10 w-10 text-purple-400" />
